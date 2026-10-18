@@ -1,0 +1,36 @@
+import {analyze,number,fromOFF} from './analysis.js';
+export const PRODUCT_FIELDS='code,product_name,product_name_en,brands,quantity,product_quantity,product_quantity_unit,ingredients_text,ingredients_text_en,allergens_tags,traces_tags,categories_tags,countries,nutriments,nutriscore,nutriscore_data,nutriscore_grade,nutriscore_score,nutriscore_version,nova_group,additives_tags,last_modified_t';
+const signed=v=>v===null||v===undefined||String(v).trim()===''?null:Number.isFinite(Number(v))?Number(v):null;
+export function scoreFromOFF(p){
+ const version=String(p.nutriscore_version||''),entry=p.nutriscore?.[version],data=entry?.data||p.nutriscore_data,grade=String(entry?.grade||p.nutriscore_grade||'').toUpperCase(),score=signed(entry?.score??p.nutriscore_score);
+ if(!['2021','2023'].includes(version)||!data||!['A','B','C','D','E'].includes(grade)||score===null||entry?.nutriscore_applicable===0||entry?.nutriscore_computed===0||entry?.nutrients_available===0)return null;
+ const negative=number(data.negative_points),positive=number(data.positive_points);
+ const equation=negative!==null&&positive!==null&&Math.abs(negative-positive-score)<.001;
+ const components=side=>Array.isArray(data.components?.[side])?data.components[side].filter(c=>c&&typeof c.id==='string'&&number(c.points)!==null).map(c=>({name:c.id.replaceAll('_',' '),points:number(c.points),value:number(c.value),unit:String(c.unit||'')})):[];
+ return {version,grade,score,negative,positive,equation,positiveComponents:components('positive'),negativeComponents:components('negative'),proteinCounted:data.count_proteins!==0,estimated:entry?.estimated===1,preparation:entry?.preparation||'unspecified'};
+}
+export function enrichProduct(p,code){const out=fromOFF(p,code),n=p.nutriments||{};Object.assign(out.nutrition,{carbs:number(n.carbohydrates_100g),addedSugar:number(n['added-sugars_100g']),trans:number(n['trans-fat_100g']),caffeine:scaled(n.caffeine_100g,1000),calcium:scaled(n.calcium_100g,1000),iron:scaled(n.iron_100g,1000),potassium:scaled(n.potassium_100g,1000),vitaminD:scaled(n['vitamin-d_100g'],1000000)});out.rating=scoreFromOFF(p);out.nova=[1,2,3,4].includes(Number(p.nova_group))?Number(p.nova_group):null;out.additives=Array.isArray(p.additives_tags)?p.additives_tags:[];out.countries=p.countries||'Market not specified';out.modified=number(p.last_modified_t)?new Date(Number(p.last_modified_t)*1000).toISOString():null;out.pack=parsePack(p.quantity)||null;out.unit=out.pack?.unit||'g';out.typeConfirmed=false;return out;}
+function scaled(v,m){const n=number(v);return n===null?null:n*m}
+export function parsePack(text){const m=String(text||'').trim().match(/^(\d+(?:[.,]\d+)?)\s*(kg|g|ml|cl|l)\s*(?:e|℮)?$/i);if(!m)return null;const unit=m[2].toLowerCase(),amount=Number(m[1].replace(',','.'))*(unit==='kg'||unit==='l'?1000:unit==='cl'?10:1);return amount>0?{amount,unit:['g','kg'].includes(unit)?'g':'ml'}:null}
+export const formatAmount=v=>{const n=number(v);if(n===null)return 'Unknown';const rounded=Number(n.toFixed(2));return (rounded!==n?'≈ ':'')+rounded};
+export const EXTRA_FIELDS=[['carbs','Carbohydrate','g'],['addedSugar','Added sugars','g'],['trans','Trans fat','g'],['caffeine','Caffeine','mg'],['calcium','Calcium','mg'],['iron','Iron','mg'],['potassium','Potassium','mg'],['vitaminD','Vitamin D','µg']];
+export function overview(p,allergies=[]){const base=analyze(p,allergies),good=[],concerns=[],context=[],missing=[];for(const m of base.metrics){if(m.level==='low')good.push(`${m.name}: ${formatAmount(m.value)} g per 100 g, within the low band.`);if(m.level==='high'||m.level==='moderate')concerns.push(`${m.name}: ${formatAmount(m.value)} g per 100 g (${m.level}).`);if(m.value===null)missing.push(m.name)}
+ const n=p.nutrition||{};for(const [k,label] of [['fibre','Fibre'],['protein','Protein']]){const v=number(n[k]);if(v===null)missing.push(label);else if(v>0)good.push(`${label} provided: ${formatAmount(v)} g per 100 ${p.unit||'g'}. This is a contribution, not an automatic high-${k} claim.`);else context.push(`${label}: reported as 0 g.`)}
+ if(number(n.energy)!==null)context.push(`Energy density: ${formatAmount(n.energy)} kcal per 100 ${p.unit||'g'}; ${+(n.energy*(p.serving||30)/100).toFixed(1)} kcal in your portion. Energy needs vary.`);else missing.push('Energy');
+ if(number(n.addedSugar)>0)concerns.push(`Added sugars: ${formatAmount(n.addedSugar)} g per 100 ${p.unit||'g'}. Included within total sugars; do not count them twice.`);
+ if(number(n.trans)>0)concerns.push(`Trans fat is reported (${formatAmount(n.trans)} g per 100 ${p.unit||'g'}). It is outside the displayed Nutri-Score calculation.`);
+ if(number(n.caffeine)>0)concerns.push(`Caffeine: ${formatAmount(n.caffeine)} mg per 100 ${p.unit||'g'}. Review suitability for children, pregnancy and caffeine sensitivity; it is outside the nutrition score.`);
+ for(const [k,label,unit] of EXTRA_FIELDS){if(number(n[k])===null)missing.push(label);else if(['calcium','iron','potassium','vitaminD','carbs'].includes(k))context.push(`${label}: ${formatAmount(n[k])} ${unit} per 100 ${p.unit||'g'}. Shown without a benefit or risk claim; suitability depends on the wider diet.`)}
+ if(p.nova)context.push(`Processing classification: NOVA ${p.nova}/4, reported by Open Food Facts. This describes processing, not a contaminant or safety test.`);else missing.push('Processing classification');
+ if(p.additives?.length)context.push(`Database additive tags: ${p.additives.join(', ')}. No blanket penalty is applied; presence alone does not establish harm.`);
+ if(!p.ingredients)missing.push('Ingredient list');
+ if(base.matches.length)concerns.unshift(`Personal allergy alert: ${base.matches.join(', ')}. A favourable nutrition score cannot cancel this warning.`);
+ for(const note of base.notes)if(note.tone==='amber')concerns.push(note.name+': '+note.text);
+ missing.push('Storage conditions, freshness and contaminants cannot be determined from this database.');
+ const coverage=['sugars','saturated','salt','fat','energy','protein','fibre','carbs','addedSugar','trans','caffeine','calcium','iron','potassium','vitaminD'];
+ return {...base,good,concerns,context,missing,available:coverage.filter(k=>number(n[k])!==null).length,total:coverage.length,rating:p.rating||null};
+}
+// Voice names are a best-effort preference, not a gender field supplied by browsers.
+export const likelyFemale=v=>/female|samantha|karen|moira|tessa|veena|heera|zira|aria|jenny|susan|hazel|sonia|libby|neerja|natasha|sara|serena|victoria|ava|allison|sangeeta|rishi-female/i.test(v.name||'');
+export function chooseVoice(voices,uri){const english=voices.filter(v=>/^en(?:-|_)/i.test(v.lang||''));return english.find(v=>v.voiceURI===uri)||english.find(v=>likelyFemale(v)&&/^en[-_]IN$/i.test(v.lang))||english.find(likelyFemale)||english.find(v=>v.default)||english[0]||null}
+export function searchURL(query,page=1){const q=query.trim();if(q.length<2||q.length>100)throw Error('Use 2–100 characters for the product or brand name.');const u=new URL('/api/search','https://nutrilens.local');u.search=new URLSearchParams({q,langs:'en',page_size:'12',page:String(page),fields:'code,product_name,brands,quantity,countries_tags',charts:''}).toString();return u.pathname+u.search}

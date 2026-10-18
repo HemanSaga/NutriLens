@@ -13,7 +13,18 @@ npm test
 npm run build
 ```
 
-`dist/` is the deployable site. Upload that directory to any HTTPS static host. There is no compilation step; `npm run build` checks JavaScript syntax. `server.mjs` is for local preview, not a production server. Sites hosting identity is retained in `.openai/hosting.json`.
+`npm run build` creates a self-contained Cloudflare-compatible Worker in `dist/server/index.js`, with the six frontend assets embedded and a same-origin read-only product API. Deploy through Sites using the retained `.openai/hosting.json` identity. This version needs Worker/server hosting; uploading only the frontend to a static host will not provide search. `server.mjs` runs the equivalent local preview and API.
+
+## October 2026 update: search, quantity and broader assessment
+
+- Name/brand search uses the dedicated `search.openfoodfacts.org/search` full-text API (v3 product reads do not offer text search). The unavailable legacy endpoint was replaced after a live integration check. Requests run on submit, are spaced by 7 seconds and cached in memory; 12 results per page. Search retrieves lightweight identity fields; selecting a match loads its full v3 product record. Search coverage is global. Match market, barcode and exact recipe before selecting.
+- Both barcode and search results go through an explicit confirmation step: net pack quantity, g/ml unit, food type and intended portion. Simple quantities such as `0.5 kg` normalise; ambiguous multipacks require manual entry. Per-100, per-portion and whole-pack nutrition views do not change grade.
+- Open Food Facts Nutri-Score is shown with its supplied algorithm version (2021 or 2023), grade, score and component points when provided. Aggregate negative minus positive points is shown only when it matches the supplied raw score. Category-specific scoring is not reimplemented. Protein exclusion, estimated inputs and preparation basis are disclosed. Missing/inapplicable scores remain unavailable; manual nutrient edits discard the old score.
+- Good factors, concerns, context and unknowns cover the original traffic lights plus fibre/protein, energy/portion, carbohydrate, added sugar, trans fat, caffeine, calcium, iron, potassium, vitamin D, NOVA processing, additive tags, ingredient explanations and selected allergies. Coverage is explicitly not a confidence score. We do not claim every health factor can be known from packaging or cancel allergy warnings with a nutrition grade.
+- Voice automatically prefers recognised female English voice names, favouring Indian English, then offers a persistent device-voice picker and preview. Browsers provide no standard gender metadata. Fallback is disclosed. Hosted TTS with a documented female voice and a server-side secret would be needed for consistent cross-device speech; this build has no paid TTS integration. Long explanations play in short utterances; Stop cancels the queue.
+- The automated tests cover source-score arithmetic and exclusions, missing data, unit normalisation, voice selection and previous safety-sensitive rules.
+
+References: https://www.santepubliquefrance.fr/nutri-score and https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisVoice
 
 ## What works
 
@@ -22,15 +33,21 @@ npm run build
 - English OCR through pinned Tesseract.js 5.1.1, loaded on demand from jsDelivr. Photo processing stays in the browser; the engine and language files require internet. Review OCR output before analysing; nutrition values are entered manually.
 - Manual entry works without APIs. Missing numbers remain unknown. Drinks/specialised foods are shown without solid-food classifications. Food category from community data must be confirmed.
 - Rules-based explanations (no AI API or invented numeric health score), seven optional English allergy keyword screens, and sources shown with reports.
-- Voice uses SpeechSynthesis with en-IN. Availability and actual voice depend on the device. No Hindi translation is claimed.
+- Voice uses an explicitly selected SpeechSynthesis voice and its language. Availability depends on the device. No Hindi translation is claimed.
 - Up to 50 saved scans and preferences in localStorage; no accounts, cloud storage or analytics. Reports may contain allergy selections, so export deliberately.
 - FSSAI licence entry links to the official verification service. It does not scrape FoSCoS, verify a licence automatically, or establish a product's safety.
 
+## Server-side search
+
+Direct browser searches failed in integration testing. `/api/search` now queries the dedicated search service server-side; `/api/product/:code` reads full records from the v3 endpoint. Only these fixed upstream hosts and read routes are allowed. The gateway supplies an identifying User-Agent with the app URL, bounds inputs, imposes an 18-second upstream timeout, caches searches for 5 minutes and product records for 1 hour, and applies a best-effort 9 uncached requests/minute quota per isolate. Production traffic needs a shared rate limiter and registration of the app/operator with Open Food Facts. No secrets are needed for these public reads.
+
+`worker/api.js` is server source; `scripts/build.mjs` embeds `public/` into the deployment Worker. No personal preference or allergy data is sent to the server. Search terms are sent to the app and Open Food Facts, and public product data is cached; user scan history stays in localStorage.
+
 ## Architecture
 
-`dist/analysis.js`: pure versioned nutrition/ingredient rules, normalisation, demos.
-`dist/app.js`: views, browser integrations and local state.
-`dist/styles.css`: responsive visual system.
+`public/analysis.js`: pure versioned nutrition/ingredient rules, normalisation, demos.
+`public/app.js`: views, browser integrations and local state.
+`public/styles.css`: responsive visual system.
 `tests/analysis.test.mjs`: safety-sensitive rule checks and data conversion checks.
 
 ## Nutrition methodology
@@ -51,7 +68,7 @@ Open Food Facts attribution is visible in product reports and methodology. Datab
 
 1. Pilot with 20–30 students/shoppers using Indian packaged foods. Check exact variants, label accuracy, task completion and whether users understand the explanation. Record failures with consent, without collecting unnecessary personal health data.
 2. Have a registered dietitian/food-science reviewer validate explanations, thresholds, special-category exclusions and allergen language for your target population. Add a reviewed multilingual glossary (Hindi plus local languages), with translated voice output and screen-reader tests.
-3. Add a small backend for a production Open Food Facts integration: identify the app with its requested User-Agent and a real operator contact, complete their API usage form, cache product reads, respect rate limits, log failures without health profiles, and provide a correction channel. Browsers cannot reliably set the requested User-Agent; the current direct-fetch prototype should not be treated as a completed large-scale integration.
+3. Harden the included backend for a production Open Food Facts integration: identify the app with its requested User-Agent and a real operator contact, complete their API usage form, cache product reads, respect rate limits, log failures without health profiles, and provide a correction channel. The included gateway identifies the app by URL, but large-scale operation still needs a real operator contact, upstream registration and shared rate-limit enforcement.
 4. Improve Indian product coverage through consented, reviewed label contributions and exact barcode/variant matching. Record provenance, label date and corrections. Never invent missing nutrition values. Offer a useful manual workflow when data is absent.
 5. Seek an authorised FSSAI integration or partnership if automatic business verification is required. Until then preserve the official manual route. Never convert licence status into a health badge.
 6. Add a maintained barcode-library fallback for browsers without native detection, validate camera/OCR on real Android and iOS devices, add image quality guidance and cancellation, and self-host reviewed OCR assets where practical. Existing web fallback is barcode entry.

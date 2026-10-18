@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {analyze,band,number,validBarcode,fromOFF,DEMOS,METRICS} from '../dist/analysis.js';
+import {analyze,band,number,validBarcode,fromOFF,DEMOS,METRICS} from '../public/analysis.js';
 test('missing and invalid data never becomes a favourable zero',()=>{for(const v of [null,undefined,'',' ',NaN,-1,'bad']){assert.equal(number(v),null);assert.equal(band(v,METRICS[0]),'unknown')}assert.equal(number(0),0);const a=analyze({type:'food',nutrition:{}});assert.equal(a.unknown.length,4);assert.equal(a.verdict,'More information needed')});
 test('traffic light boundaries are inclusive for low, exclusive for high',()=>{for(const m of METRICS){assert.equal(band(m.low,m),'low');assert.equal(band(m.low+.001,m),'moderate');assert.equal(band(m.high,m),'moderate');assert.equal(band(m.high+.001,m),'high')}});
 test('drinks are not classified with solid-food rules',()=>{const a=analyze({...DEMOS[0],type:'other'});assert.equal(a.high.length,0);assert.equal(a.unknown.length,4);assert.equal(a.verdict,'Values shown, rating withheld')});

@@ -1,5 +1,5 @@
 // Versioned, deterministic screening rules. These are not a medical or FSSAI score.
-export const RULE_VERSION='1.0';
+export const RULE_VERSION='1.1';
 export const METRICS=[{key:'sugars',name:'Total sugars',low:5,high:22.5},{key:'saturated',name:'Saturated fat',low:1.5,high:5},{key:'salt',name:'Salt',low:.3,high:1.5},{key:'fat',name:'Total fat',low:3,high:17.5}];
 export const number=(v)=>v===null||v===undefined||String(v).trim()===''?null:(Number.isFinite(Number(v))&&Number(v)>=0?Number(v):null);
 export function band(value,metric,type='food'){const v=number(value);if(v===null||type!=='food')return 'unknown';return v<=metric.low?'low':v>metric.high?'high':'moderate';}
