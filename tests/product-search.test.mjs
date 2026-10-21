@@ -28,3 +28,11 @@ test('throttled searches automatically run the latest query',async()=>{
  const calls=[];const search=createProductSearch({delay:0,interval:35,fetchResults:async q=>{calls.push(q);return {products:[],count:0}},onChange:()=>{}});
  search.search('first');await wait(5);search.search('second');search.search('third');await wait(55);assert.deepEqual(calls,['first','third']);
 });
+test('India and worldwide results are cached independently',async()=>{
+ const calls=[],states=[];
+ const search=createProductSearch({delay:0,interval:0,fetchResults:async(q,p,market)=>{calls.push(market);return {products:[market],count:1}},onChange:s=>states.push(s)});
+ search.search('Amul',1,true,'india');await wait(5);
+ search.search('Amul',1,true,'world');await wait(5);
+ assert.deepEqual(calls,['india','world']);assert.deepEqual(states.at(-1).products,['world']);
+ search.search('Amul',1,true,'india');assert.deepEqual(states.at(-1).products,['india']);assert.equal(calls.length,2);
+});
