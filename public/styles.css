@@ -11,3 +11,53 @@
 
 .product-autocomplete{position:relative;margin:18px 0 16px}.product-autocomplete .field{margin:0 0 8px}.product-autocomplete>input{width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #d6ddd7;border-radius:10px;background:#fff;font:inherit;color:#243d32}.product-autocomplete>input:focus{outline:2px solid #42765c;outline-offset:2px}.suggestion-panel{position:absolute;top:calc(100% + 7px);left:0;right:0;z-index:30;border:1px solid #cedbd1;border-radius:14px;background:#fff;box-shadow:0 16px 40px #203d3226;overflow:hidden}.suggestion-panel[hidden]{display:none}.suggestion-status{padding:12px 14px;background:#f2f6f0;color:#526457;font-size:12px;line-height:1.5}#product-suggestions{max-height:330px;overflow-y:auto;overscroll-behavior:contain}.product-option{padding:13px 15px;border-top:1px solid #edf0eb;cursor:pointer;display:grid;gap:4px;overflow-wrap:anywhere}.product-option:hover,.product-option.active{background:#eaf3e7}.product-option strong{font-size:14px;color:#264c38}.product-option span{font-size:12px;color:#4e6154}.product-option small{font-size:10px;color:#738075}
 @media(max-width:600px){#product-suggestions{max-height:280px}.product-option{padding:12px}}
+
+/* Inspection hierarchy: strong cues, readable labels, and explicit unknowns. */
+main[data-view="result"] .hint{color:#566477}
+main[data-view="result"] .balance-panel{border:1px solid #b8cdea;border-top:5px solid #3565c5;box-shadow:0 8px 28px #274b8110;background:linear-gradient(130deg,#f1f6ff 0,#fff 43%)}
+.inspection-start{margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid #d5e1f2}
+.inspection-kicker{display:inline-block;background:#254e9a;color:#fff;padding:7px 11px;border-radius:6px;font-size:10px;font-weight:800;letter-spacing:1px}
+.inspection-start p{color:#415574;font-size:13px;line-height:1.7;margin:10px 0 0;max-width:650px}
+main[data-view="result"] .balance-panel>.section-label h2{font-size:23px;color:#17345d;letter-spacing:-.5px}
+main[data-view="result"] .balance-panel .pill{background:#e5edfb;color:#284b83;border:1px solid #c6d6f0}
+main[data-view="result"] .score-overview{background:#fff;border-radius:12px;padding:18px;border:1px solid #dae3ef}
+main[data-view="result"] .score-overview strong{font-size:17px;color:#253b54}
+main[data-view="result"] .score-letter{width:76px;height:76px;font-size:42px;box-shadow:0 5px 12px #243c5315}
+main[data-view="result"] .grade-a,main[data-view="result"] .grade-b{background:#087b52;color:#fff}
+main[data-view="result"] .grade-c{background:#ffd166;color:#5c4100}
+main[data-view="result"] .grade-d,main[data-view="result"] .grade-e{background:#ba3b31;color:#fff}
+main[data-view="result"] .score-equation{background:#eaf0fc;border-color:#c6d7f4;color:#254e82}
+main[data-view="result"] .score-equation strong{font-size:22px;color:#173c78}
+main[data-view="result"] .balance-panel>.notice{background:#edf3ff;border-color:#c7d9f5;border-left:4px solid #3565c5;color:#284d80}
+.factor-caption{display:block;font-size:9px;font-weight:800;letter-spacing:1.15px;margin-bottom:9px}
+main[data-view="result"] .factor-columns section.factor-good{background:#e9f8ef;border:1px solid #a9dbbd;border-top:4px solid #128354}
+main[data-view="result"] .factor-good .factor-caption,main[data-view="result"] .factor-good h3{color:#12643f}
+main[data-view="result"] .factor-good li{color:#254b38}
+main[data-view="result"] .factor-columns section.factor-concern{background:#fff4df;border:1px solid #ecc686;border-top:4px solid #d58a13}
+main[data-view="result"] .factor-concern .factor-caption,main[data-view="result"] .factor-concern h3{color:#815000}
+main[data-view="result"] .factor-concern li{color:#694a22}
+main[data-view="result"] .factor-columns section h3{font-size:18px}
+main[data-view="result"] .factor-columns section li{font-size:13px;line-height:1.8}
+main[data-view="result"] .balance-panel>details{border:1px solid #cddcf0;background:#f3f7ff;padding:13px 16px;border-radius:9px;margin-top:14px}
+main[data-view="result"] .balance-panel>details>summary{color:#274e81;font-weight:650;font-size:12px}
+main[data-view="result"]>.notice.red{border:1px solid #e89991;border-left:6px solid #ba3b31;background:#fff0ed;color:#8f2822;font-size:14px;padding:19px}
+main[data-view="result"] .nutrient.high{background:#fff0ed;border-color:#e9aea4}
+main[data-view="result"] .nutrient.high b{color:#a52f26}
+main[data-view="result"] .nutrient.high .nutrient-line{background:#c54436}
+main[data-view="result"] .nutrient.moderate{background:#fff5df;border-color:#e7cd90}
+main[data-view="result"] .nutrient.moderate .nutrient-line{background:#c48b16}
+main[data-view="result"] .nutrient.low{background:#ecf8ef;border-color:#b4d9bc}
+main[data-view="result"] .nutrient.low .nutrient-line{background:#218653}
+main[data-view="result"] .nutrient.unknown{background:#edf2f8;border-color:#cbd6e3}
+main[data-view="result"] .nutrient small{color:#4b5b50}
+main[data-view="result"] .tag.red{background:#a93228;color:#fff}
+main[data-view="result"] .tag.green{background:#176b43;color:#fff}
+main[data-view="result"] .tag.neutral{background:#e2e9f2;color:#40536d}
+main[data-view="result"] .verdict{background:#fff5e3;border-color:#e8ca94;border-left:5px solid #c28b23}
+main[data-view="result"] .verdict.green{background:#eef8ee;border-color:#a9cfae;border-left-color:#218653}
+main[data-view="result"] .verdict.neutral{background:#edf3fc;border-color:#bdcfe8;border-left-color:#577caf}
+main[data-view="result"] .verdict p{color:#4f5e69}
+main[data-view="result"] .ingredients-text{color:#4d5d50}
+main[data-view="result"] .result-actions .primary{background:#2455a0;border-color:#2455a0;color:#fff}
+main[data-view="result"] :is(button,a,summary,select,input):focus-visible{outline:3px solid #3565c5;outline-offset:3px}
+@media(max-width:600px){main[data-view="result"] .balance-panel>.section-label h2{font-size:20px}.inspection-start p{font-size:12px}main[data-view="result"] .score-overview{padding:13px;gap:12px}main[data-view="result"] .score-letter{width:58px;height:64px;font-size:34px}main[data-view="result"] .score-overview strong{font-size:14px}main[data-view="result"] .factor-columns section{padding:17px}.inspection-kicker{font-size:9px;letter-spacing:.7px}}

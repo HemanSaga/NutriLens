@@ -1,5 +1,7 @@
 # NutriLens
 
+NutriLens helps Indian consumers understand packaged food through product search, barcode lookup, ingredient explanations, nutrition insights and voice narration.
+
 A responsive food-label education web app with barcode lookup, on-device English label OCR, explainable nutrition screening, allergy keyword alerts, portion conversion, device-local saved reports, comparison, JSON export and browser speech playback.
 
 ## Run
@@ -13,11 +15,11 @@ npm test
 npm run build
 ```
 
-`npm run build` creates a self-contained Cloudflare-compatible Worker in `dist/server/index.js`, with the six frontend assets embedded and a same-origin read-only product API. Deploy through Sites using the retained `.openai/hosting.json` identity. This version needs Worker/server hosting; uploading only the frontend to a static host will not provide search. `server.mjs` runs the equivalent local preview and API.
+`npm run build` creates a self-contained Cloudflare-compatible Worker in `dist/server/index.js`, with the seven frontend assets embedded and a same-origin read-only product API. Deploy through Sites using the retained `.openai/hosting.json` identity. This version needs Worker/server hosting; uploading only the frontend to a static host will not provide search. `server.mjs` runs the equivalent local preview and API.
 
 ## October 2026 update: search, quantity and broader assessment
 
-- Name/brand search uses the dedicated `search.openfoodfacts.org/search` full-text API (v3 product reads do not offer text search). The unavailable legacy endpoint was replaced after a live integration check. Requests run on submit, are spaced by 7 seconds and cached in memory; 12 results per page. Search retrieves lightweight identity fields; selecting a match loads its full v3 product record. Search coverage is global. Match market, barcode and exact recipe before selecting.
+- Name/brand search uses the dedicated `search.openfoodfacts.org/search` full-text API (v3 product reads do not offer text search). The unavailable legacy endpoint was replaced after a live integration check. Suggestions appear as you type with mouse and keyboard selection. Requests are debounced, spaced by 7 seconds and cached in memory; 12 results per page. Search retrieves lightweight identity fields; selecting a match loads its full v3 product record. India is the default search market, with an explicit All countries option. Search targets product names and brands, prioritises exact-name matches on each page, and discloses the common “diary milk” spelling correction. Match market, barcode and exact recipe before selecting.
 - Both barcode and search results go through an explicit confirmation step: net pack quantity, g/ml unit, food type and intended portion. Simple quantities such as `0.5 kg` normalise; ambiguous multipacks require manual entry. Per-100, per-portion and whole-pack nutrition views do not change grade.
 - Open Food Facts Nutri-Score is shown with its supplied algorithm version (2021 or 2023), grade, score and component points when provided. Aggregate negative minus positive points is shown only when it matches the supplied raw score. Category-specific scoring is not reimplemented. Protein exclusion, estimated inputs and preparation basis are disclosed. Missing/inapplicable scores remain unavailable; manual nutrient edits discard the old score.
 - Good factors, concerns, context and unknowns cover the original traffic lights plus fibre/protein, energy/portion, carbohydrate, added sugar, trans fat, caffeine, calcium, iron, potassium, vitamin D, NOVA processing, additive tags, ingredient explanations and selected allergies. Coverage is explicitly not a confidence score. We do not claim every health factor can be known from packaging or cancel allergy warnings with a nutrition grade.
