@@ -1,0 +1,29 @@
+{
+  "raw_rows_with_page_overlap": 839,
+  "eligible_unique_barcodes": 361,
+  "rejections": {
+    "missing_or_short_ingredients": 222,
+    "estimated_or_inapplicable_label": 125,
+    "missing_2023_label": 38,
+    "english_not_confirmed": 22,
+    "excluded_category": 13
+  },
+  "classes": {
+    "less_favourable": 262,
+    "more_favourable": 45,
+    "intermediate": 54
+  },
+  "categories": {
+    "beverage": 101,
+    "snack": 260
+  },
+  "category_classes": {
+    "beverage:less_favourable": 68,
+    "beverage:more_favourable": 27,
+    "beverage:intermediate": 6,
+    "snack:less_favourable": 194,
+    "snack:intermediate": 48,
+    "snack:more_favourable": 18
+  },
+  "independent_groups": 155
+}

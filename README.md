@@ -4,7 +4,13 @@ NutriLens helps Indian consumers understand packaged food through product search
 
 A responsive food-label education web app with barcode lookup, on-device English label OCR, explainable nutrition screening, allergy keyword alerts, portion conversion, device-local saved reports, comparison, JSON export and browser speech playback.
 
-## Run
+## Research model (October 2026)
+
+A separately trained ingredient-text deep MLP now exists for Indian-market **snacks and nonalcoholic beverages**. It predicts source-derived nutritional-quality bands, not personal health. The pilot used 361 eligible products and achieved test macro-F1 0.504; it did not beat the strongest baseline on validation. It remains a local research prototype and is not integrated into the consumer website.
+
+Read the [model card](research/MODEL_CARD.md), [paper justification and research design](research/RESEARCH_DESIGN.md), and [training/demo instructions](ml/README.md). The pipeline includes collection, eligibility checks, grouped splits, baseline comparison, saved weights and a local web interface. More representative data and independent review are required before release.
+
+## Run the consumer app
 
 Requires Node.js 20+; no npm install or secret keys required.
 

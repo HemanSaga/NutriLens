@@ -1,0 +1,7 @@
+{
+  "rows_checked": 361,
+  "weights_finite": true,
+  "predictions_finite": true,
+  "reference_max_absolute_error": 0.0,
+  "note": "Training emitted matmul runtime warnings on this machine. A separate einsum forward pass agrees with sklearn on every curated record; inference uses that reference path."
+}

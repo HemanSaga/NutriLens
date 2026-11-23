@@ -5,3 +5,7 @@ node_modules/
 *.log
 
 dist/
+.venv-ml/
+ml/data/
+ml/artifacts/
+__pycache__/
